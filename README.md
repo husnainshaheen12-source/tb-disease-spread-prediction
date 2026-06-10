@@ -35,3 +35,7 @@ This project uses data analysis, machine learning, and simulation to study TB sp
 3. TB Spread Simulation
 4. Streamlit Dashboard
 5. Final Report and Presentation
+
+## Final Dashboard Features
+
+The final dashboard includes dataset analysis, machine learning prediction, standard simulation, and live visual simulation with policy alerts for masks and lockdown.
