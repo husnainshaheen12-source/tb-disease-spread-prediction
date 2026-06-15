@@ -2,36 +2,34 @@ import pandas as pd
 import joblib
 from pathlib import Path
 
-# File paths
 MODELS_DIR = Path("models")
 MODEL_FILE = MODELS_DIR / "random_forest.pkl"
 FEATURE_COLUMNS_FILE = MODELS_DIR / "feature_columns.pkl"
+ENCODER_FILE = MODELS_DIR / "country_label_encoder.pkl"
 
-# Load trained model and feature columns
 model = joblib.load(MODEL_FILE)
 feature_columns = joblib.load(FEATURE_COLUMNS_FILE)
+label_encoder = joblib.load(ENCODER_FILE)
 
 def predict_tb_cases(country, year, tb_incidence_per_100k):
     """
     Predict estimated TB cases using trained Random Forest model.
     """
 
-    # Create one row with all feature columns set to 0
-    input_data = pd.DataFrame(0, index=[0], columns=feature_columns)
-
-    # Set numeric values
-    input_data["year"] = year
-    input_data["tb_incidence_per_100k"] = tb_incidence_per_100k
-
-    # Set country dummy column if available
-    country_column = "country_" + country
-
-    if country_column in input_data.columns:
-        input_data[country_column] = 1
+    if country in label_encoder.classes_:
+        country_encoded = label_encoder.transform([country])[0]
     else:
-        print(f"Warning: Country '{country}' was not found in training data. Prediction may be less accurate.")
+        country_encoded = 0
+        print(f"Warning: Country '{country}' was not found in training data. Using default encoding.")
 
-    # Predict
+    input_data = pd.DataFrame({
+        "country_encoded": [country_encoded],
+        "year": [year],
+        "tb_incidence_per_100k": [tb_incidence_per_100k]
+    })
+
+    input_data = input_data[feature_columns]
+
     prediction = model.predict(input_data)[0]
 
     return round(prediction, 2)
