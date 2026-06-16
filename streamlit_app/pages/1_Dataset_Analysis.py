@@ -91,5 +91,28 @@ fig = px.line(
 
 st.plotly_chart(fig, use_container_width=True)
 
-st.subheader("Preview of Dataset")
-st.dataframe(df.head(20), use_container_width=True)
+st.subheader(f"Selected Country Data: {selected_country}")
+
+display_df = country_data.rename(columns={
+    "country": "Country",
+    "code": "Code",
+    "year": "Year",
+    "tb_cases": "TB Cases",
+    "tb_incidence_per_100k": "TB Incidence per 100k"
+})
+
+display_df = display_df[
+    [
+        "Country",
+        "Code",
+        "Year",
+        "TB Cases",
+        "TB Incidence per 100k"
+    ]
+]
+
+st.dataframe(
+    display_df,
+    use_container_width=True,
+    hide_index=True
+)
