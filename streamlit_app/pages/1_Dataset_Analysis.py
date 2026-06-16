@@ -5,124 +5,91 @@ from pathlib import Path
 
 st.set_page_config(
     page_title="Dataset Analysis",
+    page_icon="??",
     layout="wide"
 )
 
-st.title("Dataset Analysis")
+st.title("TB Dataset Analysis")
 
-st.markdown("""
-This page shows the cleaned TB dataset and allows the user to analyse TB cases by country.
-When a country is selected, both the chart and the table update for that selected country.
-""")
+DATA_FILE = Path("data/processed/tb_country_only.csv")
+SUMMARY_FILE = Path("report/dataset_analysis_summary.csv")
 
-DATA_FILE = Path("data/processed/tb_cleaned.csv")
+GLOBAL_TREND_IMG = Path("report/global_tb_cases_trend.png")
+TOP_CASES_IMG = Path("report/top_10_countries_tb_cases.png")
+TOP_INCIDENCE_IMG = Path("report/top_10_countries_tb_incidence.png")
+PAKISTAN_TREND_IMG = Path("report/pakistan_tb_cases_trend.png")
+
+if not DATA_FILE.exists():
+    st.error("Country-level dataset not found. Please run src/data_analysis.py first.")
+    st.stop()
 
 df = pd.read_csv(DATA_FILE)
 
-# Remove World, continents, and income groups
-df = df[~df["code"].astype(str).str.startswith("OWID")]
+st.markdown("""
+This page shows tuberculosis data analysis using country-level TB records.
+The analysis includes global trends, top countries by TB cases, TB incidence,
+and country-wise trend visualization.
+""")
 
-df = df.dropna()
-df = df.sort_values(["country", "year"])
-
+# Summary metrics
 st.subheader("Dataset Summary")
 
 col1, col2, col3, col4 = st.columns(4)
 
-col1.metric("Total Records", len(df))
+col1.metric("Total Records", df.shape[0])
 col2.metric("Total Countries", df["country"].nunique())
 col3.metric("Start Year", int(df["year"].min()))
 col4.metric("End Year", int(df["year"].max()))
 
+if SUMMARY_FILE.exists():
+    st.subheader("Analysis Summary Table")
+    summary_df = pd.read_csv(SUMMARY_FILE)
+    st.dataframe(summary_df, use_container_width=True)
+
+# Display generated charts
+st.subheader("Generated Analysis Charts")
+
+col_a, col_b = st.columns(2)
+
+with col_a:
+    if GLOBAL_TREND_IMG.exists():
+        st.image(str(GLOBAL_TREND_IMG), caption="Global TB Cases Trend")
+
+with col_b:
+    if PAKISTAN_TREND_IMG.exists():
+        st.image(str(PAKISTAN_TREND_IMG), caption="Pakistan TB Cases Trend")
+
+col_c, col_d = st.columns(2)
+
+with col_c:
+    if TOP_CASES_IMG.exists():
+        st.image(str(TOP_CASES_IMG), caption="Top 10 Countries by TB Cases")
+
+with col_d:
+    if TOP_INCIDENCE_IMG.exists():
+        st.image(str(TOP_INCIDENCE_IMG), caption="Top 10 Countries by TB Incidence")
+
+# Interactive country chart
 st.subheader("Interactive Country Trend")
 
-countries = sorted(df["country"].dropna().unique())
+countries = sorted(df["country"].unique())
+selected_country = st.selectbox("Select a country", countries, index=countries.index("Pakistan") if "Pakistan" in countries else 0)
 
-selected_country = st.selectbox(
-    "Select a country",
-    countries,
-    index=countries.index("Pakistan") if "Pakistan" in countries else 0
-)
-
-country_data = df[df["country"] == selected_country].copy()
-country_data = country_data.sort_values("year")
+country_data = df[df["country"] == selected_country]
 
 fig = px.line(
     country_data,
     x="year",
     y="tb_cases",
     markers=True,
-    title=f"TB Cases Trend in {selected_country}"
+    title=f"TB Cases Trend in {selected_country}",
+    labels={
+        "year": "Year",
+        "tb_cases": "TB Cases"
+    }
 )
 
-fig.update_layout(
-    xaxis_title="Year",
-    yaxis_title="TB Cases"
-)
+st.plotly_chart(fig, use_container_width=True)
 
-st.plotly_chart(fig, width="stretch")
-
-st.subheader(f"Selected Country Data: {selected_country}")
-
-display_df = country_data.rename(columns={
-    "country": "Country",
-    "code": "Code",
-    "year": "Year",
-    "tb_cases": "TB Cases",
-    "tb_incidence_per_100k": "TB Incidence per 100k"
-})
-
-display_df = display_df[
-    [
-        "Country",
-        "Code",
-        "Year",
-        "TB Cases",
-        "TB Incidence per 100k"
-    ]
-]
-
-st.dataframe(
-    display_df,
-    width="stretch",
-    hide_index=True
-)
-
-st.subheader("Top 10 Countries by Latest TB Cases")
-
-latest_year = df["year"].max()
-latest_df = df[df["year"] == latest_year].copy()
-
-top_cases = latest_df.sort_values("tb_cases", ascending=False).head(10)
-
-fig2 = px.bar(
-    top_cases,
-    x="country",
-    y="tb_cases",
-    title=f"Top 10 Countries by TB Cases in {latest_year}"
-)
-
-fig2.update_layout(
-    xaxis_title="Country",
-    yaxis_title="TB Cases"
-)
-
-st.plotly_chart(fig2, width="stretch")
-
-st.subheader("Top 10 Countries by Latest TB Incidence")
-
-top_incidence = latest_df.sort_values("tb_incidence_per_100k", ascending=False).head(10)
-
-fig3 = px.bar(
-    top_incidence,
-    x="country",
-    y="tb_incidence_per_100k",
-    title=f"Top 10 Countries by TB Incidence per 100k in {latest_year}"
-)
-
-fig3.update_layout(
-    xaxis_title="Country",
-    yaxis_title="TB Incidence per 100k"
-)
-
-st.plotly_chart(fig3, width="stretch")
+st.subheader("Preview of Dataset")
+st.dataframe(df.head(20), use_container_width=True)
