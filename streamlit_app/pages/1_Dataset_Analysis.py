@@ -2,14 +2,21 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from pathlib import Path
+from styles import apply_custom_style, page_header
 
 st.set_page_config(
     page_title="Dataset Analysis",
-    page_icon="??",
+    page_icon="📊",
     layout="wide"
 )
 
-st.title("TB Dataset Analysis")
+apply_custom_style()
+
+page_header(
+    title="TB Dataset Analysis",
+    subtitle="Explore cleaned country-level TB records, generated analysis charts, summary metrics, and selected country trends.",
+    badge="Dataset Analysis"
+)
 
 DATA_FILE = Path("data/processed/tb_country_only.csv")
 SUMMARY_FILE = Path("report/dataset_analysis_summary.csv")
@@ -25,11 +32,6 @@ if not DATA_FILE.exists():
 
 df = pd.read_csv(DATA_FILE)
 
-st.markdown("""
-This page shows tuberculosis data analysis using country-level TB records.
-The analysis includes global trends, top countries by TB cases, TB incidence,
-and country-wise trend visualization.
-""")
 
 # Summary metrics
 st.subheader("Dataset Summary")

@@ -5,6 +5,7 @@ import numpy as np
 import streamlit.components.v1 as components
 from pathlib import Path
 import sys
+from styles import apply_custom_style, page_header
 
 sys.path.append(str(Path("src").resolve()))
 
@@ -12,10 +13,17 @@ from simulation import run_tb_simulation
 
 st.set_page_config(
     page_title="Live Visual Simulation",
+    page_icon="🟢",
     layout="wide"
 )
 
-st.title("Live Visual TB Spread Simulation")
+apply_custom_style()
+
+page_header(
+    title="Live Visual TB Spread Simulation",
+    subtitle="View the TB simulation using moving dots that represent healthy, infected, recovered, and dead people.",
+    badge="Live Visualisation"
+)
 
 st.markdown("""
 This page uses the **same simulation calculation** as the Simulation page.

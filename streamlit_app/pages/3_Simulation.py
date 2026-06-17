@@ -4,6 +4,7 @@ import plotly.express as px
 import time
 from pathlib import Path
 import sys
+from styles import apply_custom_style, page_header
 
 sys.path.append(str(Path("src").resolve()))
 
@@ -11,11 +12,17 @@ from simulation import run_tb_simulation
 
 st.set_page_config(
     page_title="TB Simulation",
-    page_icon="SIM",
+    page_icon="🦠",
     layout="wide"
 )
 
-st.title("TB Disease Spread Live Chart Simulation")
+apply_custom_style()
+
+page_header(
+    title="TB Disease Spread Simulation",
+    subtitle="Run a day-by-day TB spread simulation using infection, recovery, death, masks, lockdown, and hospital crowding factors.",
+    badge="Simulation Model"
+)
 
 st.markdown("""
 This page shows a **real live chart simulation**.

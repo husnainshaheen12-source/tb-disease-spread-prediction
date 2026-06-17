@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 import sys
+from styles import apply_custom_style, page_header
 
 sys.path.append(str(Path("src").resolve()))
 
@@ -10,22 +11,21 @@ from prediction import predict_tb_cases
 
 st.set_page_config(
     page_title="ML Prediction",
+    page_icon="🤖",
     layout="wide"
 )
 
-st.title("TB Case Prediction")
+apply_custom_style()
 
-st.markdown("""
-This page predicts the expected number of TB cases for **2026**.
-
-There are two prediction options:
-
-1. **Automatic history-based prediction**  
-   Select only a country. The system checks the previous TB history of that country and predicts the expected TB cases for 2026.
-
-2. **Custom incidence prediction**  
-   Select a country and enter a TB incidence value per 100,000 people. This is useful for testing a custom situation.
-""")
+page_header(
+    title="TB Case Prediction",
+    subtitle="Predict expected TB cases for 2026 using country history or a custom TB incidence value.",
+    badge="Machine Learning Prediction"
+)
+st.info(
+    "Automatic mode uses the selected country's recent TB history. "
+    "Custom mode allows the user to test a different TB incidence value."
+)
 
 DATA_FILE = Path("data/processed/tb_cleaned.csv")
 HISTORY_FILE = Path("data/processed/country_history_features.csv")
